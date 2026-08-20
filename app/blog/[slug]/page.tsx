@@ -1,4 +1,8 @@
-import { getPostBySlug, getSortedPosts } from '../../../lib/posts';
+import {
+  getPostBySlug,
+  getSortedPosts,
+  PostNotFoundError,
+} from '../../../lib/posts';
 import { notFound } from 'next/navigation';
 
 type Params = { slug: string };
@@ -18,8 +22,12 @@ export default async function PostPage({
   let post;
   try {
     post = await getPostBySlug(slug);
-  } catch {
-    notFound();
+  } catch (err) {
+    if (err instanceof PostNotFoundError) {
+      notFound();
+    }
+    // For frontmatter/content errors, let Next.js show its error page
+    throw err;
   }
 
   return (
