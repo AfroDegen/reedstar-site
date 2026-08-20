@@ -41,6 +41,12 @@ export class PostContentError extends Error {
     this.name = 'PostContentError';
   }
 }
+function isValidSlug(slug: string): boolean {
+  // Only allow letters, numbers, and hyphens
+  // No slashes, dots, or anything that could traverse paths
+  return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug);
+}
+
 
 export function getSortedPosts(): PostData[] {
   const fileNames = fs.readdirSync(postsDirectory);
@@ -76,6 +82,11 @@ export function getSortedPosts(): PostData[] {
 }
 
 export async function getPostBySlug(slug: string): Promise<PostData> {
+  // Validate slug to prevent path traversal
+  if (!isValidSlug(slug)) {
+    throw new PostNotFoundError(slug);
+  }
+
   const fullPath = path.join(postsDirectory, `${slug}.md`);
 
   let fileContents: string;
@@ -112,3 +123,4 @@ export async function getPostBySlug(slug: string): Promise<PostData> {
     contentHtml: processed.toString(),
   };
 }
+
