@@ -19,22 +19,33 @@ export async function generateMetadata({
   params: Promise<Params>;
 }): Promise<Metadata> {
   const { slug } = await params;
+  const post = await getPostBySlug(slug);
 
-  try {
-    const post = await getPostBySlug(slug);
-    return {
+  const url = `https://blog.reedstar.store/blog/${post.slug}`;
+
+  return {
+    title: post.title,
+    description: post.excerpt,
+    alternates: {
+      canonical: url,
+    },
+    openGraph: {
       title: post.title,
       description: post.excerpt,
-      openGraph: {
-        title: post.title,
-        description: post.excerpt,
-        type: 'article',
-        publishedTime: post.date,
-      },
-    };
-  } catch {
-    return {};
-  }
+      type: 'article',
+      publishedTime: post.date,
+      // If you add a "modified" field to frontmatter later, you can use:
+      // modifiedTime: post.modified,
+      url,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: post.title,
+      description: post.excerpt,
+    },
+    // If you add "author" to frontmatter and PostData, you can extend:
+    // authors: [{ name: post.author }],
+  };
 }
 
 export default async function PostPage({
