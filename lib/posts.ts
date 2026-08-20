@@ -14,7 +14,8 @@ const postSchema = z.object({
   draft: z.boolean().default(false),
 });
 
-export type PostData = {
+export type 
+PostData = {
   slug: string;
   title: string;
   date: string;
@@ -81,6 +82,7 @@ allPosts.push({
   draft,
   contentHtml: content,
 });
+  }
 
   return allPosts.sort((a, b) => (a.date < b.date ? 1 : -1));
 }
@@ -131,4 +133,4 @@ if (draft) {
   draft,
   contentHtml: processed.toString(),
 };
-
+}
