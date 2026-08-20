@@ -3,8 +3,15 @@ import path from 'path';
 import matter from 'gray-matter';
 import { remark } from 'remark';
 import html from 'remark-html';
+import { z } from 'zod';
 
 const postsDirectory = path.join(process.cwd(), 'posts');
+
+const postSchema = z.object({
+  title: z.string(),
+  date: z.string(),
+  excerpt: z.string().optional(),
+});
 
 export type PostData = {
   slug: string;
