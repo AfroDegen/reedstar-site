@@ -88,30 +88,4 @@ export async function getPostBySlug(slug: string): Promise<PostData> {
 
   const { data, content } = matter(fileContents);
 
-  // Validate frontmatter with Zod
-  const parsed = postSchema.safeParse(data);
-  if (!parsed.success) {
-    throw new PostFrontmatterError(slug, parsed.error.message);
-  }
-
-  const { title, date, excerpt } = parsed.data;
-
-  // Process markdown content
-  let processed: Awaited<ReturnType<typeof remark().use(html).process>>;
-  try {
-    processed = await remark()
-      .use(html)
-      .process(content);
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : 'Unknown error';
-    throw new PostContentError(slug, msg);
-  }
-
-  return {
-    slug,
-    title,
-    date,
-    excerpt,
-    contentHtml: processed.toString(),
-  };
-}
+  // Validate frontmatter with
