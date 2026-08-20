@@ -60,15 +60,24 @@ export async function getPostBySlug(slug: string): Promise<PostData> {
   const fileContents = fs.readFileSync(fullPath, 'utf8');
   const { data, content } = matter(fileContents);
 
+  const parsed = postSchema.safeParse(data);
+  if (!parsed.success) {
+    console.error(`Invalid frontmatter in posts/${slug}.md:`, parsed.error);
+    throw new Error(`Invalid frontmatter in posts/${slug}.md`);
+  }
+
+  const { title, date, excerpt } = parsed.data;
+
   const processed = await remark()
     .use(html)
     .process(content);
 
   return {
     slug,
-    title: data.title as string,
-    date: data.date as string,
-    excerpt: (data.excerpt as string) || '',
+    title,
+    date,
+    excerpt,
     contentHtml: processed.toString(),
   };
 }
+
