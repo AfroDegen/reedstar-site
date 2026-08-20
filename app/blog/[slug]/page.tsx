@@ -4,12 +4,37 @@ import {
   PostNotFoundError,
 } from '../../../lib/posts';
 import { notFound } from 'next/navigation';
+import type { Metadata } from 'next';
 
 type Params = { slug: string };
 
 export async function generateStaticParams() {
   const posts = getSortedPosts();
   return posts.map((p) => ({ slug: p.slug }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<Params>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+
+  try {
+    const post = await getPostBySlug(slug);
+    return {
+      title: post.title,
+      description: post.excerpt,
+      openGraph: {
+        title: post.title,
+        description: post.excerpt,
+        type: 'article',
+        publishedTime: post.date,
+      },
+    };
+  } catch {
+    return {};
+  }
 }
 
 export default async function PostPage({
@@ -26,7 +51,6 @@ export default async function PostPage({
     if (err instanceof PostNotFoundError) {
       notFound();
     }
-    // For frontmatter/content errors, let Next.js show its error page
     throw err;
   }
 
