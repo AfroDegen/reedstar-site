@@ -8,8 +8,12 @@ export async function generateStaticParams() {
   return posts.map((p) => ({ slug: p.slug }));
 }
 
-export default async function PostPage({ params }: { params: Params }) {
-  const { slug } = params;
+export default async function PostPage({
+  params,
+}: {
+  params: Promise<Params>;
+}) {
+  const { slug } = await params;
 
   let post;
   try {
