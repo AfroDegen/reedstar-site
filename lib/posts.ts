@@ -11,13 +11,15 @@ const postSchema = z.object({
   title: z.string(),
   date: z.string(),
   excerpt: z.string().optional(),
+  draft: z.boolean().default(false),
 });
 
-export type PostData = {
+export type export type PostData = {
   slug: string;
   title: string;
   date: string;
   excerpt?: string;
+  draft: boolean;
   contentHtml?: string;
 };
 
@@ -67,16 +69,18 @@ export function getSortedPosts(): PostData[] {
       continue;
     }
 
-    const { title, date, excerpt } = parsed.data;
+    const { title, date, excerpt, draft } = parsed.data;
 
-    allPosts.push({
-      slug,
-      title,
-      date,
-      excerpt,
-      contentHtml: content,
-    });
-  }
+if (draft) continue;
+
+allPosts.push({
+  slug,
+  title,
+  date,
+  excerpt,
+  draft,
+  contentHtml: content,
+});
 
   return allPosts.sort((a, b) => (a.date < b.date ? 1 : -1));
 }
@@ -103,7 +107,11 @@ export async function getPostBySlug(slug: string): Promise<PostData> {
     throw new PostFrontmatterError(slug, parsed.error.message);
   }
 
-  const { title, date, excerpt } = parsed.data;
+  const { title, date, excerpt, draft } = parsed.data;
+
+if (draft) {
+  throw new PostNotFoundError(slug);
+}
 
   let processed;
   try {
@@ -116,11 +124,11 @@ export async function getPostBySlug(slug: string): Promise<PostData> {
   }
 
   return {
-    slug,
-    title,
-    date,
-    excerpt,
-    contentHtml: processed.toString(),
-  };
-}
+  slug,
+  title,
+  date,
+  excerpt,
+  draft,
+  contentHtml: processed.toString(),
+};
 
