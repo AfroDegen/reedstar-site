@@ -9,14 +9,8 @@ const postsDirectory = path.join(process.cwd(), 'posts');
 export type PostData = {
   slug: string;
   title: string;
-  description: string;
   date: string;
-  modified?: string;
-  author: string;
-  category?: string;
-  tags: string[];
-  coverImage?: string;
-  draft: boolean;
+  excerpt?: string;
   contentHtml?: string;
 };
 
@@ -35,7 +29,7 @@ export function getSortedPosts(): PostData[] {
         title: data.title as string,
         date: data.date as string,
         excerpt: (data.excerpt as string) || '',
-        content,
+        contentHtml: content, // raw markdown; or convert if you prefer
       } as PostData;
     });
 
