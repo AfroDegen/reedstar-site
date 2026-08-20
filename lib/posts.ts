@@ -21,6 +21,27 @@ export type PostData = {
   contentHtml?: string;
 };
 
+export class PostNotFoundError extends Error {
+  constructor(slug: string) {
+    super(`Post not found: ${slug}`);
+    this.name = 'PostNotFoundError';
+  }
+}
+
+export class PostFrontmatterError extends Error {
+  constructor(slug: string, message: string) {
+    super(`Invalid frontmatter in posts/${slug}.md: ${message}`);
+    this.name = 'PostFrontmatterError';
+  }
+}
+
+export class PostContentError extends Error {
+  constructor(slug: string, message: string) {
+    super(`Failed to process content of posts/${slug}.md: ${message}`);
+    this.name = 'PostContentError';
+  }
+}
+
 export function getSortedPosts(): PostData[] {
   const fileNames = fs.readdirSync(postsDirectory);
 
@@ -54,23 +75,37 @@ export function getSortedPosts(): PostData[] {
   return allPosts.sort((a, b) => (a.date < b.date ? 1 : -1));
 }
 
-
 export async function getPostBySlug(slug: string): Promise<PostData> {
   const fullPath = path.join(postsDirectory, `${slug}.md`);
-  const fileContents = fs.readFileSync(fullPath, 'utf8');
+
+  // Check if file exists
+  let fileContents: string;
+  try {
+    fileContents = fs.readFileSync(fullPath, 'utf8');
+  } catch {
+    throw new PostNotFoundError(slug);
+  }
+
   const { data, content } = matter(fileContents);
 
+  // Validate frontmatter with Zod
   const parsed = postSchema.safeParse(data);
   if (!parsed.success) {
-    console.error(`Invalid frontmatter in posts/${slug}.md:`, parsed.error);
-    throw new Error(`Invalid frontmatter in posts/${slug}.md`);
+    throw new PostFrontmatterError(slug, parsed.error.message);
   }
 
   const { title, date, excerpt } = parsed.data;
 
-  const processed = await remark()
-    .use(html)
-    .process(content);
+  // Process markdown content
+  let processed: Awaited<ReturnType<typeof remark().use(html).process>>;
+  try {
+    processed = await remark()
+      .use(html)
+      .process(content);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'Unknown error';
+    throw new PostContentError(slug, msg);
+  }
 
   return {
     slug,
@@ -80,4 +115,3 @@ export async function getPostBySlug(slug: string): Promise<PostData> {
     contentHtml: processed.toString(),
   };
 }
-
