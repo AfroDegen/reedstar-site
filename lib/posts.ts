@@ -9,8 +9,14 @@ const postsDirectory = path.join(process.cwd(), 'posts');
 export type PostData = {
   slug: string;
   title: string;
+  description: string;
   date: string;
-  excerpt?: string;
+  modified?: string;
+  author: string;
+  category?: string;
+  tags: string[];
+  coverImage?: string;
+  draft: boolean;
   contentHtml?: string;
 };
 
