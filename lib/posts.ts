@@ -23,25 +23,37 @@ export type PostData = {
 
 export function getSortedPosts(): PostData[] {
   const fileNames = fs.readdirSync(postsDirectory);
-  const allPosts = fileNames
-    .filter((name) => name.endsWith('.md'))
-    .map((fileName) => {
-      const slug = fileName.replace(/\.md$/, '');
-      const fullPath = path.join(postsDirectory, fileName);
-      const fileContents = fs.readFileSync(fullPath, 'utf8');
-      const { data, content } = matter(fileContents);
 
-      return {
-        slug,
-        title: data.title as string,
-        date: data.date as string,
-        excerpt: (data.excerpt as string) || '',
-        contentHtml: content, // raw markdown; or convert if you prefer
-      } as PostData;
+  const allPosts: PostData[] = [];
+
+  for (const name of fileNames) {
+    if (!name.endsWith('.md')) continue;
+
+    const slug = name.replace(/\.md$/, '');
+    const fullPath = path.join(postsDirectory, name);
+    const fileContents = fs.readFileSync(fullPath, 'utf8');
+    const { data, content } = matter(fileContents);
+
+    const parsed = postSchema.safeParse(data);
+    if (!parsed.success) {
+      console.error(`Invalid frontmatter in posts/${slug}.md:`, parsed.error);
+      continue; // skip this post
+    }
+
+    const { title, date, excerpt } = parsed.data;
+
+    allPosts.push({
+      slug,
+      title,
+      date,
+      excerpt,
+      contentHtml: content,
     });
+  }
 
   return allPosts.sort((a, b) => (a.date < b.date ? 1 : -1));
 }
+
 
 export async function getPostBySlug(slug: string): Promise<PostData> {
   const fullPath = path.join(postsDirectory, `${slug}.md`);
