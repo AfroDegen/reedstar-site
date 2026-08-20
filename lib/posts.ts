@@ -14,7 +14,7 @@ const postSchema = z.object({
   draft: z.boolean().default(false),
 });
 
-export type export type PostData = {
+export type PostData = {
   slug: string;
   title: string;
   date: string;
