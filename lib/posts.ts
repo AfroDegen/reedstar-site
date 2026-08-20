@@ -58,7 +58,7 @@ export function getSortedPosts(): PostData[] {
     const parsed = postSchema.safeParse(data);
     if (!parsed.success) {
       console.error(`Invalid frontmatter in posts/${slug}.md:`, parsed.error);
-      continue; // skip this post
+      continue;
     }
 
     const { title, date, excerpt } = parsed.data;
@@ -78,7 +78,6 @@ export function getSortedPosts(): PostData[] {
 export async function getPostBySlug(slug: string): Promise<PostData> {
   const fullPath = path.join(postsDirectory, `${slug}.md`);
 
-  // Check if file exists
   let fileContents: string;
   try {
     fileContents = fs.readFileSync(fullPath, 'utf8');
@@ -88,4 +87,28 @@ export async function getPostBySlug(slug: string): Promise<PostData> {
 
   const { data, content } = matter(fileContents);
 
-  // Validate frontmatter with
+  const parsed = postSchema.safeParse(data);
+  if (!parsed.success) {
+    throw new PostFrontmatterError(slug, parsed.error.message);
+  }
+
+  const { title, date, excerpt } = parsed.data;
+
+  let processed;
+  try {
+    processed = await remark()
+      .use(html)
+      .process(content);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'Unknown error';
+    throw new PostContentError(slug, msg);
+  }
+
+  return {
+    slug,
+    title,
+    date,
+    excerpt,
+    contentHtml: processed.toString(),
+  };
+}
