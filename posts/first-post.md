@@ -1,16 +1,14 @@
 ---
-title: "Your first post title"
+title: "Your article title"
+description: "A concise description of the article."
 date: "2026-08-20"
-excerpt: "Short description for the blog index."
+modified: "2026-08-20"
+author: "Reedstar"
+category: "AI Visibility"
+tags:
+  - AI
+  - Search
+  - Business Intelligence
+coverImage: "/images/blog/article-slug/cover.jpg"
+draft: false
 ---
-
-# Your first post title
-
-This is the body of your post. Write in Markdown.
-
-- Bullet
-- Another bullet
-
-## Subheading
-
-More content here.
