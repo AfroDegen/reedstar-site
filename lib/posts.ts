@@ -53,16 +53,52 @@ function isValidSlug(slug: string): boolean {
 }
 
 export function getSortedPosts(): PostData[] {
-  const fileNames = fs.readdirSync(postsDirectory);
+  // everything currently inside getSortedPosts...
 
-  const allPosts: PostData[] = [];
+  return allPosts.sort((a, b) => (a.date < b.date ? 1 : -1));
+}
 
-  for (const name of fileNames) {
-    if (!name.endsWith('.md')) continue;
+export function getRelatedPosts(
+  currentPost: PostData,
+  limit = 3
+): PostData[] {
+  const posts = getSortedPosts().filter(
+    (post) => post.slug !== currentPost.slug
+  );
 
-    const slug = name.replace(/\.md$/, '');
-    const fullPath = path.join(postsDirectory, name);
-    const fileContents = fs.readFileSync(fullPath, 'utf8');
-    const { data, content } = matter(fileContents);
+  const scored = posts.map((post) => {
+    let score = 0;
 
-    const parsed =
+    if (
+      currentPost.category &&
+      post.category &&
+      currentPost.category === post.category
+    ) {
+      score += 3;
+    }
+
+    const currentTags = new Set(
+      currentPost.tags.map((tag) => tag.toLowerCase())
+    );
+
+    for (const tag of post.tags) {
+      if (currentTags.has(tag.toLowerCase())) {
+        score += 1;
+      }
+    }
+
+    return { post, score };
+  });
+
+  return scored
+    .filter(({ score }) => score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit)
+    .map(({ post }) => post);
+}
+
+export async function getPostBySlug(
+  slug: string
+): Promise<PostData> {
+  // existing function
+}
