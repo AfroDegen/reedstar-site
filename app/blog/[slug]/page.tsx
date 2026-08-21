@@ -1,82 +1,83 @@
-import {
-  getPostBySlug,
-  getSortedPosts,
-  PostNotFoundError,
-} from '../../../lib/posts';
-import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
-import ArticleLayout from '../../../components/ArticleLayout';
-type Params = { slug: string };
+import { notFound } from 'next/navigation';
+
 import {
   getPostBySlug,
   getRelatedPosts,
+  getSortedPosts,
 } from '@/lib/posts';
 
+import ArticleLayout from '@/components/ArticleLayout';
 import RelatedPosts from '@/components/RelatedPosts';
+
+type PageProps = {
+  params: Promise<{
+    slug: string;
+  }>;
+};
+
 export async function generateStaticParams() {
   const posts = getSortedPosts();
-  return posts.map((p) => ({ slug: p.slug }));
+
+  return posts.map((post) => ({
+    slug: post.slug,
+  }));
 }
+
+export const dynamicParams = false;
 
 export async function generateMetadata({
   params,
-}: {
-  params: Promise<Params>;
-}): Promise<Metadata> {
+}: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const post = await getPostBySlug(slug);
 
-  const url = `https://blog.reedstar.store/blog/${post.slug}`;
+  try {
+    const post = await getPostBySlug(slug);
 
-  return {
-    title: post.title,
-    description: post.excerpt,
-    alternates: {
-      canonical: url,
-    },
-    openGraph: {
+    return {
       title: post.title,
       description: post.excerpt,
-      type: 'article',
-      publishedTime: post.date,
-      // If you add a "modified" field to frontmatter later, you can use:
-      // modifiedTime: post.modified,
-      url,
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: post.title,
-      description: post.excerpt,
-    },
-    // If you add "author" to frontmatter and PostData, you can extend:
-    // authors: [{ name: post.author }],
-  };
+      alternates: {
+        canonical: `/blog/${post.slug}`,
+      },
+      openGraph: {
+        title: post.title,
+        description: post.excerpt,
+        type: 'article',
+        publishedTime: post.date,
+      },
+    };
+  } catch {
+    return {};
+  }
 }
 
-export default async function PostPage({
+export default async function BlogPostPage({
   params,
-}: {
-  params: Promise<Params>;
-}) {
+}: PageProps) {
   const { slug } = await params;
 
   let post;
+
   try {
     post = await getPostBySlug(slug);
-  } catch (err) {
-    if (err instanceof PostNotFoundError) {
-      notFound();
-    }
-    throw err;
+  } catch {
+    notFound();
   }
 
-return (
-  <ArticleLayout post={post}>
-    <div
-      dangerouslySetInnerHTML={{
-        __html: post.contentHtml || '',
-      }}
-    />
-  </ArticleLayout>
-);
+  const relatedPosts = getRelatedPosts(post);
+
+  return (
+    <>
+      <ArticleLayout post={post}>
+        <div
+          dangerouslySetInnerHTML={{
+            __html: post.contentHtml ?? '',
+          }}
+        />
+      </ArticleLayout>
+
+      <RelatedPosts posts={relatedPosts} />
+    </>
+  );
 }
