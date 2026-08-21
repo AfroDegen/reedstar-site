@@ -28,7 +28,7 @@ export default function BlogIndex() {
             Featured
           </p>
 
-          <ArticleCard post={featuredPost} />
+          <ArticleCard post={featuredPost} featured />
         </section>
       )}
 
