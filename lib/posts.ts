@@ -47,12 +47,10 @@ export class PostContentError extends Error {
     this.name = 'PostContentError';
   }
 }
+
 function isValidSlug(slug: string): boolean {
-  // Only allow letters, numbers, and hyphens
-  // No slashes, dots, or anything that could traverse paths
   return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug);
 }
-
 
 export function getSortedPosts(): PostData[] {
   const fileNames = fs.readdirSync(postsDirectory);
@@ -68,32 +66,37 @@ export function getSortedPosts(): PostData[] {
     const { data, content } = matter(fileContents);
 
     const parsed = postSchema.safeParse(data);
+
     if (!parsed.success) {
-      console.error(`Invalid frontmatter in posts/${slug}.md:`, parsed.error);
+      console.error(
+        `Invalid frontmatter in posts/${slug}.md:`,
+        parsed.error,
+      );
       continue;
     }
 
     const { title, date, excerpt, category, tags, draft } = parsed.data;
 
-if (draft) continue;
+    if (draft) continue;
 
-allPosts.push({
-  slug,
-  title,
-  date,
-  excerpt,
-  category,
-  tags,
-  draft,
-  contentHtml: content,
-});
+    allPosts.push({
+      slug,
+      title,
+      date,
+      excerpt,
+      category,
+      tags,
+      draft,
+      contentHtml: content,
+    });
   }
 
   return allPosts.sort((a, b) => (a.date < b.date ? 1 : -1));
 }
 
-export async function getPostBySlug(slug: string): Promise<PostData> {
-  // Validate slug to prevent path traversal
+export async function getPostBySlug(
+  slug: string,
+): Promise<PostData> {
   if (!isValidSlug(slug)) {
     throw new PostNotFoundError(slug);
   }
@@ -101,6 +104,7 @@ export async function getPostBySlug(slug: string): Promise<PostData> {
   const fullPath = path.join(postsDirectory, `${slug}.md`);
 
   let fileContents: string;
+
   try {
     fileContents = fs.readFileSync(fullPath, 'utf8');
   } catch {
@@ -110,34 +114,48 @@ export async function getPostBySlug(slug: string): Promise<PostData> {
   const { data, content } = matter(fileContents);
 
   const parsed = postSchema.safeParse(data);
+
   if (!parsed.success) {
-    throw new PostFrontmatterError(slug, parsed.error.message);
+    throw new PostFrontmatterError(
+      slug,
+      parsed.error.message,
+    );
   }
 
-  const { title, date, excerpt, category, tags, draft } = parsed.data;
+  const {
+    title,
+    date,
+    excerpt,
+    category,
+    tags,
+    draft,
+  } = parsed.data;
 
-if (draft) {
-  throw new PostNotFoundError(slug);
-}
+  if (draft) {
+    throw new PostNotFoundError(slug);
+  }
 
   let processed;
+
   try {
     processed = await remark()
       .use(html)
       .process(content);
   } catch (err) {
-    const msg = err instanceof Error ? err.message : 'Unknown error';
+    const msg =
+      err instanceof Error ? err.message : 'Unknown error';
+
     throw new PostContentError(slug, msg);
   }
 
-  allPosts.push({
-  slug,
-  title,
-  date,
-  excerpt,
-  category,
-  tags,
-  draft,
-  contentHtml: content,
-});
+  return {
+    slug,
+    title,
+    date,
+    excerpt,
+    category,
+    tags,
+    draft,
+    contentHtml: processed.toString(),
+  };
 }
