@@ -65,17 +65,13 @@ export default async function PostPage({
     throw err;
   }
 
-  return (
-    <main style={{ maxWidth: 720, margin: '0 auto', padding: 24 }}>
-      <h1>{post.title}</h1>
-      <div style={{ color: '#666', marginBottom: 24 }}>{post.date}</div>
-      <article className="article">
-  <div
-    dangerouslySetInnerHTML={{
-      __html: post.contentHtml || '',
-    }}
-  />
-</article>
-    </main>
-  );
+return (
+  <ArticleLayout post={post}>
+    <div
+      dangerouslySetInnerHTML={{
+        __html: post.contentHtml || '',
+      }}
+    />
+  </ArticleLayout>
+);
 }
