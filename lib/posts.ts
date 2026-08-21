@@ -12,6 +12,7 @@ const postSchema = z.object({
   date: z.string(),
   excerpt: z.string().optional(),
   category: z.string().optional(),
+  tags: z.array(z.string()).default([]),
   draft: z.boolean().default(false),
 });
 
@@ -21,6 +22,7 @@ export type PostData = {
   date: string;
   excerpt?: string;
   category?: string;
+  tags: string[];
   draft: boolean;
   contentHtml?: string;
 };
@@ -71,7 +73,7 @@ export function getSortedPosts(): PostData[] {
       continue;
     }
 
-    const { title, date, excerpt, category, draft } = parsed.data;
+    const { title, date, excerpt, category, tags, draft } = parsed.data;
 
 if (draft) continue;
 
@@ -81,6 +83,7 @@ allPosts.push({
   date,
   excerpt,
   category,
+  tags,
   draft,
   contentHtml: content,
 });
@@ -111,7 +114,7 @@ export async function getPostBySlug(slug: string): Promise<PostData> {
     throw new PostFrontmatterError(slug, parsed.error.message);
   }
 
-  const { title, date, excerpt, category, draft } = parsed.data;
+  const { title, date, excerpt, category, tags, draft } = parsed.data;
 
 if (draft) {
   throw new PostNotFoundError(slug);
@@ -127,13 +130,14 @@ if (draft) {
     throw new PostContentError(slug, msg);
   }
 
-  return {
+  allPosts.push({
   slug,
   title,
   date,
   excerpt,
   category,
+  tags,
   draft,
-  contentHtml: processed.toString(),
-};
+  contentHtml: content,
+});
 }
