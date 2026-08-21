@@ -74,7 +74,46 @@ export function getSortedPosts(): PostData[] {
       );
       continue;
     }
+export function getRelatedPosts(
+  currentPost: PostData,
+  limit = 3
+): PostData[] {
+  const posts = getSortedPosts().filter(
+    (post) => post.slug !== currentPost.slug
+  );
 
+  const scored = posts.map((post) => {
+    let score = 0;
+
+    // Same category = strong relationship
+    if (
+      currentPost.category &&
+      post.category &&
+      currentPost.category === post.category
+    ) {
+      score += 3;
+    }
+
+    // Each shared tag = additional relationship
+    const currentTags = new Set(
+      currentPost.tags.map((tag) => tag.toLowerCase())
+    );
+
+    for (const tag of post.tags) {
+      if (currentTags.has(tag.toLowerCase())) {
+        score += 1;
+      }
+    }
+
+    return { post, score };
+  });
+
+  return scored
+    .filter(({ score }) => score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit)
+    .map(({ post }) => post);
+}
     const { title, date, excerpt, category, tags, draft } = parsed.data;
 
     if (draft) continue;
