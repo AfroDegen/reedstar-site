@@ -1,37 +1,50 @@
-import Link from 'next/link';
+import ArticleCard from '../../components/ArticleCard';
 import { getSortedPosts } from '../../lib/posts';
 
 export default function BlogIndex() {
   const posts = getSortedPosts();
+  const featuredPost = posts[0];
+  const latestPosts = posts.slice(1);
 
   return (
     <main className="blog-container">
-      <p className="eyebrow">REEDSTAR INSIGHTS</p>
+      <header className="publication-header">
+        <p className="eyebrow">REEDSTAR INSIGHTS</p>
 
-      <h1>Blog</h1>
+        <h1 className="publication-title">
+          Research and ideas about business intelligence,
+          AI visibility and the public web.
+        </h1>
 
-      <ul className="blog-list">
-        {posts.map((post) => (
-          <li key={post.slug} className="blog-item">
-            <Link
-              href={`/blog/${post.slug}`}
-              className="blog-link"
-            >
-              {post.title}
-            </Link>
+        <p className="publication-description">
+          Practical research, analysis and ideas about how businesses are
+          discovered, understood and represented online.
+        </p>
+      </header>
 
-            <div className="blog-date">
-              {post.date}
-            </div>
+      {featuredPost && (
+        <section className="featured-article" aria-labelledby="featured-heading">
+          <p className="section-label" id="featured-heading">
+            Featured
+          </p>
 
-            {post.excerpt && (
-              <div className="blog-excerpt">
-                {post.excerpt}
-              </div>
-            )}
-          </li>
-        ))}
-      </ul>
+          <ArticleCard post={featuredPost} />
+        </section>
+      )}
+
+      {latestPosts.length > 0 && (
+        <section className="latest-articles" aria-labelledby="latest-heading">
+          <div className="section-heading">
+            <h2 id="latest-heading">Latest</h2>
+          </div>
+
+          <div className="latest-articles-list">
+            {latestPosts.map((post) => (
+              <ArticleCard key={post.slug} post={post} />
+            ))}
+          </div>
+        </section>
+      )}
     </main>
   );
 }
