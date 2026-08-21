@@ -5,19 +5,29 @@ export default function BlogIndex() {
   const posts = getSortedPosts();
 
   return (
-    <main style={{ maxWidth: 720, margin: '0 auto', padding: 24 }}>
+    <main className="blog-container">
+      <p className="eyebrow">REEDSTAR INSIGHTS</p>
+
       <h1>Blog</h1>
-      <ul style={{ listStyle: 'none', padding: 0 }}>
+
+      <ul className="blog-list">
         {posts.map((post) => (
-          <li key={post.slug} style={{ marginBottom: 16 }}>
-            <Link href={`/blog/${post.slug}`} style={{ fontSize: 18 }}>
+          <li key={post.slug} className="blog-item">
+            <Link
+              href={`/blog/${post.slug}`}
+              className="blog-link"
+            >
               {post.title}
             </Link>
-            <div style={{ color: '#666', fontSize: 14 }}>
+
+            <div className="blog-date">
               {post.date}
             </div>
+
             {post.excerpt && (
-              <div style={{ marginTop: 4 }}>{post.excerpt}</div>
+              <div className="blog-excerpt">
+                {post.excerpt}
+              </div>
             )}
           </li>
         ))}
