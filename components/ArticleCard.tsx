@@ -19,7 +19,13 @@ export default function ArticleCard({
   });
 
   return (
-    <article className={featured ? 'article-card article-card-featured' : 'article-card'}>
+    <article
+      className={
+        featured
+          ? 'article-card article-card-featured'
+          : 'article-card'
+      }
+    >
       <p className="article-card-label">
         {featured ? 'Featured article' : 'Article'}
       </p>
@@ -37,7 +43,9 @@ export default function ArticleCard({
       )}
 
       <div className="article-card-meta">
-        <time dateTime={post.date}>{formattedDate}</time>
+        <time dateTime={post.date}>
+          {formattedDate}
+        </time>
       </div>
     </article>
   );
