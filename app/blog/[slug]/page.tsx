@@ -7,7 +7,12 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import ArticleLayout from '../../../components/ArticleLayout';
 type Params = { slug: string };
+import {
+  getPostBySlug,
+  getRelatedPosts,
+} from '@/lib/posts';
 
+import RelatedPosts from '@/components/RelatedPosts';
 export async function generateStaticParams() {
   const posts = getSortedPosts();
   return posts.map((p) => ({ slug: p.slug }));
