@@ -129,3 +129,118 @@ a {
     padding-top: var(--space-4);
   }
 }
+/* Article typography */
+
+.article {
+  width: min(100% - 32px, 720px);
+  margin: 0 auto;
+  padding: var(--space-5) 0 var(--space-6);
+}
+
+.article h1 {
+  margin: 0 0 var(--space-3);
+  font-size: clamp(36px, 7vw, 56px);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+}
+
+.article h2 {
+  margin: var(--space-6) 0 var(--space-2);
+  font-size: clamp(26px, 5vw, 36px);
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+}
+
+.article h3 {
+  margin: var(--space-5) 0 var(--space-2);
+  font-size: clamp(21px, 4vw, 28px);
+  line-height: 1.25;
+}
+
+.article p {
+  margin: 0 0 var(--space-3);
+  font-size: 18px;
+  line-height: 1.75;
+}
+
+.article a {
+  color: var(--foreground);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.article a:hover {
+  opacity: 0.7;
+}
+
+.article blockquote {
+  margin: var(--space-4) 0;
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid var(--foreground);
+  color: var(--muted);
+  font-size: 19px;
+}
+
+.article ul,
+.article ol {
+  margin: 0 0 var(--space-3);
+  padding-left: var(--space-3);
+}
+
+.article li {
+  margin-bottom: var(--space-1);
+  font-size: 18px;
+  line-height: 1.7;
+}
+
+.article code {
+  padding: 2px 5px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: #f6f6f6;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.9em;
+}
+
+.article pre {
+  overflow-x: auto;
+  margin: var(--space-4) 0;
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: #f6f6f6;
+  line-height: 1.6;
+}
+
+.article pre code {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-size: 14px;
+}
+
+.article img {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: var(--space-4) 0;
+  border-radius: var(--radius-md);
+}
+
+@media (max-width: 600px) {
+  .article {
+    width: min(100% - 32px, 720px);
+    padding-top: var(--space-4);
+  }
+
+  .article p,
+  .article li {
+    font-size: 17px;
+  }
+
+  .article pre {
+    margin-left: -8px;
+    margin-right: -8px;
+    border-radius: var(--radius-sm);
+  }
+}
