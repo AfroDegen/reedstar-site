@@ -43,9 +43,11 @@ export default function ArticleCard({
       )}
 
       <div className="article-card-meta">
-        <time dateTime={post.date}>
-          {formattedDate}
-        </time>
+        <div className="article-card-meta">
+  {post.category && <span>{post.category}</span>}
+  <span>·</span>
+  <time dateTime={post.date}>{formattedDate}</time>
+</div>
       </div>
     </article>
   );
