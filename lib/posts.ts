@@ -53,9 +53,52 @@ function isValidSlug(slug: string): boolean {
 }
 
 export function getSortedPosts(): PostData[] {
-  // everything currently inside getSortedPosts...
+  const fileNames = fs.readdirSync(postsDirectory);
 
-  return allPosts.sort((a, b) => (a.date < b.date ? 1 : -1));
+  const allPosts: PostData[] = [];
+
+  for (const name of fileNames) {
+    if (!name.endsWith('.md')) continue;
+
+    const slug = name.replace(/\.md$/, '');
+    const fullPath = path.join(postsDirectory, name);
+
+    try {
+      const fileContents = fs.readFileSync(fullPath, 'utf8');
+      const { data, content } = matter(fileContents);
+
+      const parsed = postSchema.safeParse(data);
+
+      if (!parsed.success) {
+        console.error(
+          `Invalid frontmatter in posts/${slug}.md:`,
+          parsed.error
+        );
+        continue;
+      }
+
+      const { title, date, excerpt, category, tags, draft } = parsed.data;
+
+      if (draft) continue;
+
+      allPosts.push({
+        slug,
+        title,
+        date,
+        excerpt,
+        category,
+        tags,
+        draft,
+        contentHtml: content,
+      });
+    } catch (error) {
+      console.error(`Failed to read posts/${slug}.md:`, error);
+    }
+  }
+
+  return allPosts.sort((a, b) =>
+    a.date < b.date ? 1 : -1
+  );
 }
 
 export function getRelatedPosts(
@@ -64,6 +107,10 @@ export function getRelatedPosts(
 ): PostData[] {
   const posts = getSortedPosts().filter(
     (post) => post.slug !== currentPost.slug
+  );
+
+  const currentTags = new Set(
+    currentPost.tags.map((tag) => tag.toLowerCase())
   );
 
   const scored = posts.map((post) => {
@@ -76,10 +123,6 @@ export function getRelatedPosts(
     ) {
       score += 3;
     }
-
-    const currentTags = new Set(
-      currentPost.tags.map((tag) => tag.toLowerCase())
-    );
 
     for (const tag of post.tags) {
       if (currentTags.has(tag.toLowerCase())) {
@@ -100,5 +143,70 @@ export function getRelatedPosts(
 export async function getPostBySlug(
   slug: string
 ): Promise<PostData> {
-  // existing function
+  if (!isValidSlug(slug)) {
+    throw new PostNotFoundError(slug);
+  }
+
+  const fullPath = path.join(
+    postsDirectory,
+    `${slug}.md`
+  );
+
+  let fileContents: string;
+
+  try {
+    fileContents = fs.readFileSync(fullPath, 'utf8');
+  } catch {
+    throw new PostNotFoundError(slug);
+  }
+
+  const { data, content } = matter(fileContents);
+
+  const parsed = postSchema.safeParse(data);
+
+  if (!parsed.success) {
+    throw new PostFrontmatterError(
+      slug,
+      parsed.error.message
+    );
+  }
+
+  const {
+    title,
+    date,
+    excerpt,
+    category,
+    tags,
+    draft,
+  } = parsed.data;
+
+  if (draft) {
+    throw new PostNotFoundError(slug);
+  }
+
+  let processed;
+
+  try {
+    processed = await remark()
+      .use(html)
+      .process(content);
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : 'Unknown error';
+
+    throw new PostContentError(slug, message);
+  }
+
+  return {
+    slug,
+    title,
+    date,
+    excerpt,
+    category,
+    tags,
+    draft,
+    contentHtml: processed.toString(),
+  };
 }
